@@ -1,0 +1,221 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Core Reusable Primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isVerifiedUser() && (
+        request.auth.token.email == '80880q0q0@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Validation Helpers
+    function isValidCategory(data) {
+      return data.keys().hasAll(['name', 'slug', 'sortOrder', 'active', 'updatedAt'])
+        && data.keys().hasOnly(['name', 'slug', 'description', 'sortOrder', 'active', 'updatedAt'])
+        && data.name is string && data.name.size() >= 2 && data.name.size() <= 60
+        && data.slug is string && data.slug.size() >= 2 && data.slug.size() <= 60 && data.slug.matches('^[a-z0-9-]+$')
+        && (!('description' in data) || (data.description is string && data.description.size() <= 240))
+        && data.sortOrder is number && data.sortOrder >= 0 && data.sortOrder <= 1000
+        && data.active is bool
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidMenuItem(data) {
+      return data.keys().hasAll([
+          'name', 'categoryId', 'categoryName', 'description', 'pricePkr',
+          'isSamplePrice', 'available', 'featured', 'imageUrl', 'spiceLevel',
+          'prepTimeMinutes', 'sortOrder', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'name', 'categoryId', 'categoryName', 'description', 'pricePkr',
+          'isSamplePrice', 'available', 'featured', 'imageUrl', 'spiceLevel',
+          'prepTimeMinutes', 'sortOrder', 'updatedAt'
+        ])
+        && data.name is string && data.name.size() >= 2 && data.name.size() <= 100
+        && isValidId(data.categoryId)
+        && data.categoryName is string && data.categoryName.size() >= 2 && data.categoryName.size() <= 60
+        && data.description is string && data.description.size() >= 4 && data.description.size() <= 400
+        && data.pricePkr is number && data.pricePkr >= 0 && data.pricePkr <= 100000
+        && data.isSamplePrice is bool
+        && data.available is bool
+        && data.featured is bool
+        && data.imageUrl is string && data.imageUrl.size() >= 1 && data.imageUrl.size() <= 120000
+        && data.spiceLevel in ['Mild', 'Medium', 'Signature Blend']
+        && data.prepTimeMinutes is number && data.prepTimeMinutes >= 1 && data.prepTimeMinutes <= 180
+        && data.sortOrder is number && data.sortOrder >= 0 && data.sortOrder <= 1000
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll([
+          'orderNumber', 'customerName', 'customerPhone', 'deliveryAddress',
+          'orderType', 'instructions', 'items', 'subtotalPkr',
+          'deliveryChargePkr', 'totalPkr', 'paymentMethod', 'status',
+          'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'orderNumber', 'customerName', 'customerPhone', 'deliveryAddress',
+          'orderType', 'instructions', 'items', 'subtotalPkr',
+          'deliveryChargePkr', 'totalPkr', 'paymentMethod', 'status',
+          'createdAt', 'updatedAt'
+        ])
+        && data.orderNumber is string && data.orderNumber.size() >= 5 && data.orderNumber.size() <= 24 && data.orderNumber.matches('^#AGH-[0-9A-Z]+$')
+        && data.customerName is string && data.customerName.size() >= 2 && data.customerName.size() <= 80
+        && data.customerPhone is string && data.customerPhone.size() >= 7 && data.customerPhone.size() <= 24
+        && data.deliveryAddress is string && data.deliveryAddress.size() <= 250
+        && data.orderType in ['Delivery', 'Pickup']
+        && data.instructions is string && data.instructions.size() <= 300
+        && data.items is list && data.items.size() >= 1 && data.items.size() <= 50 && data.items[0] is map
+        && data.subtotalPkr is number && data.subtotalPkr >= 0 && data.subtotalPkr <= 500000
+        && data.deliveryChargePkr is number && data.deliveryChargePkr >= 0 && data.deliveryChargePkr <= 10000
+        && data.totalPkr is number && data.totalPkr >= 0 && data.totalPkr <= 510000
+        && data.paymentMethod in ['Cash on Delivery', 'Pay at Pickup']
+        && data.status in ['New Order', 'Accepted', 'Preparing', 'Ready', 'Out for Delivery', 'Completed', 'Cancelled']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidOrderTracking(data) {
+      return data.keys().hasAll(['orderNumber', 'status', 'updatedAt'])
+        && data.keys().hasOnly(['orderNumber', 'status', 'updatedAt'])
+        && data.orderNumber is string && data.orderNumber.size() >= 5 && data.orderNumber.size() <= 24 && data.orderNumber.matches('^#AGH-[0-9A-Z]+$')
+        && data.status in ['New Order', 'Accepted', 'Preparing', 'Ready', 'Out for Delivery', 'Completed', 'Cancelled']
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidSettings(data) {
+      return data.keys().hasAll([
+          'openTime', 'closeTime', 'hoursNote', 'deliveryChargePkr',
+          'freeDeliveryThresholdPkr', 'isAcceptingOrders', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'openTime', 'closeTime', 'hoursNote', 'deliveryChargePkr',
+          'freeDeliveryThresholdPkr', 'isAcceptingOrders', 'updatedAt'
+        ])
+        && data.openTime is string && data.openTime.size() >= 3 && data.openTime.size() <= 20
+        && data.closeTime is string && data.closeTime.size() >= 3 && data.closeTime.size() <= 20
+        && data.hoursNote is string && data.hoursNote.size() >= 5 && data.hoursNote.size() <= 160
+        && data.deliveryChargePkr is number && data.deliveryChargePkr >= 0 && data.deliveryChargePkr <= 5000
+        && data.freeDeliveryThresholdPkr is number && data.freeDeliveryThresholdPkr >= 0 && data.freeDeliveryThresholdPkr <= 100000
+        && data.isAcceptingOrders is bool
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidAdmin(data) {
+      return data.keys().hasAll(['email', 'role', 'addedAt'])
+        && data.keys().hasOnly(['email', 'role', 'addedAt'])
+        && data.email is string && data.email.size() >= 5 && data.email.size() <= 120
+        && data.role == 'admin'
+        && data.addedAt is timestamp;
+    }
+
+    // Categories
+    match /categories/{categoryId} {
+      allow get: if isValidId(categoryId);
+      allow list: if true;
+      allow create: if isAdmin() && isValidId(categoryId) && isValidCategory(incoming()) && incoming().updatedAt == request.time;
+      allow update: if isAdmin() && isValidId(categoryId) && isValidCategory(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'slug', 'description', 'sortOrder', 'active', 'updatedAt'])
+        && incoming().updatedAt == request.time;
+      allow delete: if isAdmin() && isValidId(categoryId);
+    }
+
+    // Menu Items
+    match /menu_items/{itemId} {
+      allow get: if isValidId(itemId);
+      allow list: if true;
+      allow create: if isAdmin() && isValidId(itemId) && isValidMenuItem(incoming())
+        && incoming().updatedAt == request.time
+        && exists(/databases/$(database)/documents/categories/$(incoming().categoryId));
+      allow update: if isAdmin() && isValidId(itemId) && isValidMenuItem(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'name', 'categoryId', 'categoryName', 'description', 'pricePkr',
+          'isSamplePrice', 'available', 'featured', 'imageUrl', 'spiceLevel',
+          'prepTimeMinutes', 'sortOrder', 'updatedAt'
+        ])
+        && incoming().updatedAt == request.time
+        && exists(/databases/$(database)/documents/categories/$(incoming().categoryId));
+      allow delete: if isAdmin() && isValidId(itemId);
+    }
+
+    // Orders (Strict PII Isolation: Guest Create-Only, Admin Read/Manage)
+    match /orders/{orderId} {
+      allow get: if isAdmin() && isValidId(orderId);
+      allow list: if isAdmin();
+      allow create: if isValidId(orderId) && isValidOrder(incoming())
+        && incoming().status == 'New Order'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && existsAfter(/databases/$(database)/documents/order_tracking/$(orderId));
+      allow update: if isAdmin() && isValidId(orderId) && isValidOrder(incoming())
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']);
+      allow delete: if isAdmin() && isValidId(orderId);
+    }
+
+    // Order Tracking (Non-PII status mirror, single-doc lookup only)
+    match /order_tracking/{orderId} {
+      allow get: if isValidId(orderId);
+      allow list: if isAdmin();
+      allow create: if isValidId(orderId) && isValidOrderTracking(incoming())
+        && incoming().status == 'New Order'
+        && incoming().updatedAt == request.time
+        && existsAfter(/databases/$(database)/documents/orders/$(orderId));
+      allow update: if isAdmin() && isValidId(orderId) && isValidOrderTracking(incoming())
+        && incoming().orderNumber == existing().orderNumber
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']);
+      allow delete: if isAdmin() && isValidId(orderId);
+    }
+
+    // Restaurant Settings
+    match /settings/{settingId} {
+      allow get: if isValidId(settingId);
+      allow list: if false;
+      allow create: if isAdmin() && isValidId(settingId) && isValidSettings(incoming()) && incoming().updatedAt == request.time;
+      allow update: if isAdmin() && isValidId(settingId) && isValidSettings(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'openTime', 'closeTime', 'hoursNote', 'deliveryChargePkr',
+          'freeDeliveryThresholdPkr', 'isAcceptingOrders', 'updatedAt'
+        ])
+        && incoming().updatedAt == request.time;
+      allow delete: if false;
+    }
+
+    // Admin Users Registry
+    match /admins/{adminUid} {
+      allow get: if isAdmin() && isValidId(adminUid);
+      allow list: if isAdmin();
+      allow create: if isAdmin() && isValidId(adminUid) && isValidAdmin(incoming()) && incoming().addedAt == request.time;
+      allow update: if false;
+      allow delete: if isAdmin() && isValidId(adminUid);
+    }
+  }
+}

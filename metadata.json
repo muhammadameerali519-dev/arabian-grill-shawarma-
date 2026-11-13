@@ -1,0 +1,8 @@
+{
+  "name": "Arabian Grill House",
+  "description": "Luxury Arabian shawarma, charcoal-grilled specialties, and online ordering for Arabian Grill House in Gujranwala, Pakistan.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

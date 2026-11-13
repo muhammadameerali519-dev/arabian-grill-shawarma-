@@ -1,0 +1,368 @@
+{
+  "entities": {
+    "MenuCategory": {
+      "title": "MenuCategory",
+      "description": "A culinary category on the Arabian Grill House menu.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 60,
+          "description": "Display name of the menu category"
+        },
+        "slug": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 60,
+          "pattern": "^[a-z0-9-]+$",
+          "description": "URL-safe category slug"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 240,
+          "description": "Editorial description of the category"
+        },
+        "sortOrder": {
+          "type": "number",
+          "description": "Display order index"
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether the category is visible on the storefront"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update"
+        }
+      },
+      "required": ["name", "slug", "sortOrder", "active", "updatedAt"]
+    },
+    "MenuItem": {
+      "title": "MenuItem",
+      "description": "A dish or beverage available for ordering at Arabian Grill House.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100,
+          "description": "Dish name"
+        },
+        "categoryId": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 60,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Reference ID of the parent MenuCategory"
+        },
+        "categoryName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 60,
+          "description": "Denormalized category display name"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 400,
+          "description": "Dish culinary description"
+        },
+        "pricePkr": {
+          "type": "number",
+          "description": "Price in Pakistani Rupees (PKR)"
+        },
+        "isSamplePrice": {
+          "type": "boolean",
+          "description": "Indicates whether price is an editable sample placeholder"
+        },
+        "available": {
+          "type": "boolean",
+          "description": "Availability toggle managed by admin"
+        },
+        "featured": {
+          "type": "boolean",
+          "description": "Featured on homepage menu preview"
+        },
+        "imageUrl": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120000,
+          "description": "Local asset path or uploaded image data URL"
+        },
+        "spiceLevel": {
+          "type": "string",
+          "enum": ["Mild", "Medium", "Signature Blend"],
+          "description": "Spice profile"
+        },
+        "prepTimeMinutes": {
+          "type": "number",
+          "description": "Estimated preparation time in minutes"
+        },
+        "sortOrder": {
+          "type": "number",
+          "description": "Sort priority within category"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update"
+        }
+      },
+      "required": [
+        "name",
+        "categoryId",
+        "categoryName",
+        "description",
+        "pricePkr",
+        "isSamplePrice",
+        "available",
+        "featured",
+        "imageUrl",
+        "spiceLevel",
+        "prepTimeMinutes",
+        "sortOrder",
+        "updatedAt"
+      ]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "A customer food order stored securely with PII restricted to admins.",
+      "type": "object",
+      "properties": {
+        "orderNumber": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 24,
+          "pattern": "^#AGH-[0-9A-Z]+$",
+          "description": "Human-readable order code"
+        },
+        "customerName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80,
+          "description": "Customer full name"
+        },
+        "customerPhone": {
+          "type": "string",
+          "minLength": 7,
+          "maxLength": 24,
+          "description": "Customer mobile number"
+        },
+        "deliveryAddress": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 250,
+          "description": "Delivery address or Pickup label"
+        },
+        "orderType": {
+          "type": "string",
+          "enum": ["Delivery", "Pickup"],
+          "description": "Fulfillment mode"
+        },
+        "instructions": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 300,
+          "description": "Special culinary or delivery notes"
+        },
+        "items": {
+          "type": "array",
+          "description": "Ordered food line items (bounded <= 50)"
+        },
+        "subtotalPkr": {
+          "type": "number",
+          "description": "Order subtotal in PKR"
+        },
+        "deliveryChargePkr": {
+          "type": "number",
+          "description": "Delivery fee in PKR"
+        },
+        "totalPkr": {
+          "type": "number",
+          "description": "Grand total in PKR"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "enum": ["Cash on Delivery", "Pay at Pickup"],
+          "description": "Payment method"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "New Order",
+            "Accepted",
+            "Preparing",
+            "Ready",
+            "Out for Delivery",
+            "Completed",
+            "Cancelled"
+          ],
+          "description": "Current order lifecycle status"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp"
+        }
+      },
+      "required": [
+        "orderNumber",
+        "customerName",
+        "customerPhone",
+        "deliveryAddress",
+        "orderType",
+        "instructions",
+        "items",
+        "subtotalPkr",
+        "deliveryChargePkr",
+        "totalPkr",
+        "paymentMethod",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "OrderTracking": {
+      "title": "OrderTracking",
+      "description": "Non-PII live order status tracker keyed by exact orderId.",
+      "type": "object",
+      "properties": {
+        "orderNumber": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 24,
+          "pattern": "^#AGH-[0-9A-Z]+$",
+          "description": "Human-readable order code"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "New Order",
+            "Accepted",
+            "Preparing",
+            "Ready",
+            "Out for Delivery",
+            "Completed",
+            "Cancelled"
+          ],
+          "description": "Live order status"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp"
+        }
+      },
+      "required": ["orderNumber", "status", "updatedAt"]
+    },
+    "RestaurantSettings": {
+      "title": "RestaurantSettings",
+      "description": "Public restaurant operational settings and opening hours.",
+      "type": "object",
+      "properties": {
+        "openTime": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 20,
+          "description": "Opening time display string"
+        },
+        "closeTime": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 20,
+          "description": "Closing time display string"
+        },
+        "hoursNote": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 160,
+          "description": "Notice explaining opening hours may change"
+        },
+        "deliveryChargePkr": {
+          "type": "number",
+          "description": "Standard delivery fee in PKR"
+        },
+        "freeDeliveryThresholdPkr": {
+          "type": "number",
+          "description": "Subtotal threshold for complimentary delivery"
+        },
+        "isAcceptingOrders": {
+          "type": "boolean",
+          "description": "Whether online ordering is currently active"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp"
+        }
+      },
+      "required": [
+        "openTime",
+        "closeTime",
+        "hoursNote",
+        "deliveryChargePkr",
+        "freeDeliveryThresholdPkr",
+        "isAcceptingOrders",
+        "updatedAt"
+      ]
+    },
+    "AdminUser": {
+      "title": "AdminUser",
+      "description": "Authorized restaurant administrator registry document.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 120,
+          "description": "Verified admin email"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin"],
+          "description": "Admin role"
+        },
+        "addedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when admin was added"
+        }
+      },
+      "required": ["email", "role", "addedAt"]
+    }
+  },
+  "firestore": {
+    "/categories/{categoryId}": {
+      "schema": { "$ref": "#/entities/MenuCategory" },
+      "description": "Publicly readable menu categories; admin-only writes."
+    },
+    "/menu_items/{itemId}": {
+      "schema": { "$ref": "#/entities/MenuItem" },
+      "description": "Publicly readable menu dishes; admin-only writes."
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Customer orders; guest create-only with strict validation; admin-only read, list, update, delete to protect PII."
+    },
+    "/order_tracking/{orderId}": {
+      "schema": { "$ref": "#/entities/OrderTracking" },
+      "description": "Non-PII live order status tracker; single-document get by exact orderId; admin-only update/delete."
+    },
+    "/settings/{settingId}": {
+      "schema": { "$ref": "#/entities/RestaurantSettings" },
+      "description": "Publicly readable restaurant hours and delivery configuration; admin-only writes."
+    },
+    "/admins/{adminUid}": {
+      "schema": { "$ref": "#/entities/AdminUser" },
+      "description": "Admin access registry; admin-only read and write."
+    }
+  }
+}

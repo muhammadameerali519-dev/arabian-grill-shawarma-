@@ -1,0 +1,170 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-serif: 'Playfair Display', Georgia, serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-sans);
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
+  body {
+    overflow-x: clip;
+    max-width: 100%;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+.font-editorial {
+  font-family: var(--font-serif);
+}
+
+.font-mono-nums {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Fluid Typography Helpers (320px -> 1440px) */
+.text-fluid-hero {
+  font-size: clamp(2rem, 6.2vw, 4.35rem);
+  line-height: 1.06;
+}
+
+.text-fluid-h1 {
+  font-size: clamp(1.85rem, 5vw, 3.25rem);
+  line-height: 1.1;
+}
+
+.text-fluid-h2 {
+  font-size: clamp(1.5rem, 3.6vw, 2.75rem);
+  line-height: 1.14;
+}
+
+/* GPU-friendly 3D Shawarma Branding Animations */
+@keyframes shawarma-float-3d {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotateY(-12deg) rotateZ(-3deg);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0) rotateY(14deg) rotateZ(2deg);
+  }
+}
+
+@keyframes shawarma-float-compact {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotateY(-8deg) rotateZ(-2deg);
+  }
+  50% {
+    transform: translate3d(0, -4px, 0) rotateY(10deg) rotateZ(2deg);
+  }
+}
+
+@keyframes shawarma-shadow-pulse {
+  0%, 100% {
+    transform: scale3d(1, 1, 1);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scale3d(0.84, 0.84, 1);
+    opacity: 0.28;
+  }
+}
+
+.animate-shawarma-3d {
+  animation: shawarma-float-3d 6.5s ease-in-out infinite;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.animate-shawarma-compact {
+  animation: shawarma-float-compact 5.5s ease-in-out infinite;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.animate-shawarma-shadow {
+  animation: shawarma-shadow-pulse 6.5s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+@media (max-width: 767px) {
+  .animate-shawarma-3d {
+    animation: shawarma-float-compact 6s ease-in-out infinite;
+  }
+}
+
+/* Hide scrollbars on horizontal filter rails cleanly */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Squircle Glass Surfaces */
+.glass-dark {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.14),
+    0 20px 44px -18px rgba(0, 0, 0, 0.75);
+}
+
+.glass-light {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.88) 0%, rgba(244, 244, 245, 0.72) 100%);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border: 1px solid rgba(10, 10, 10, 0.09);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.9),
+    0 20px 44px -20px rgba(0, 0, 0, 0.12);
+}
+
+.squircle-sm {
+  border-radius: 14px;
+}
+
+.squircle-md {
+  border-radius: 20px;
+}
+
+.squircle-lg {
+  border-radius: 28px;
+}
+
+.squircle-xl {
+  border-radius: 36px;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+}
