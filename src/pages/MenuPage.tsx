@@ -84,7 +84,7 @@ export const MenuPage: React.FC = () => {
             : 'other',
       }));
 
-    // Handle any custom categories added in Admin Dashboard
+    // Include any additional categories present in fetched menu items
     for (const [catId, list] of grouped.entries()) {
       if (!ordered.some((o) => o.category.id === catId)) {
         ordered.push({

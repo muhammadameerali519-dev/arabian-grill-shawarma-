@@ -4,11 +4,9 @@ import { ArrowRight, Minus, Plus, Receipt, ShoppingBag, Trash2 } from 'lucide-re
 import { SmartImage } from '../components/SmartImage';
 import { SquircleIcon } from '../components/SquircleIcon';
 import { useCart } from '../context/CartContext';
-import { useMenu } from '../context/MenuContext';
 
 export const CartPage: React.FC = () => {
   const navigate = useNavigate();
-  const { settings } = useMenu();
   const {
     items,
     totalItems,
@@ -148,17 +146,14 @@ export const CartPage: React.FC = () => {
                     Rs. {subtotalPkr.toLocaleString('en-PK')}
                   </span>
                 </div>
-                <div className="flex justify-between text-white/70">
-                  <span>Standard Delivery</span>
-                  <span className="font-mono-nums text-white">
-                    {settings.freeDeliveryThresholdPkr > 0 &&
-                    subtotalPkr >= settings.freeDeliveryThresholdPkr
-                      ? 'Free'
-                      : `Rs. ${settings.deliveryChargePkr.toLocaleString('en-PK')}`}
+                <div className="flex justify-between items-center text-white/70 gap-2">
+                  <span>Delivery Charges</span>
+                  <span className="font-semibold text-amber-300 text-right">
+                    Confirm on WhatsApp
                   </span>
                 </div>
-                <p className="text-xs text-white/50">
-                  Pickup orders incur zero delivery charges. Final total confirmed at checkout.
+                <p className="text-xs text-white/55 leading-relaxed">
+                  Pickup orders incur zero delivery charges. For home delivery, charges are confirmed directly on WhatsApp based on your Gujranwala location.
                 </p>
               </div>
 

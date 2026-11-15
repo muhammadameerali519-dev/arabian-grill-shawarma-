@@ -14,7 +14,7 @@ export const SmartImage: React.FC<SmartImageProps> = ({
   alt,
   className = '',
   fallbackTitle,
-  loading = 'lazy',
+  loading = 'eager',
 }) => {
   const [failed, setFailed] = useState(false);
 

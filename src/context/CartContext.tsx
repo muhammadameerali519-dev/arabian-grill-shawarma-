@@ -101,18 +101,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 
   const calculateDeliveryFee = useCallback(
-    (orderType: OrderType) => {
-      if (orderType === 'Pickup') return 0;
-      if (subtotalPkr === 0) return 0;
-      if (
-        settings.freeDeliveryThresholdPkr > 0 &&
-        subtotalPkr >= settings.freeDeliveryThresholdPkr
-      ) {
-        return 0;
-      }
-      return settings.deliveryChargePkr;
+    (_orderType: OrderType) => {
+      return 0;
     },
-    [settings.deliveryChargePkr, settings.freeDeliveryThresholdPkr, subtotalPkr]
+    []
   );
 
   const addToCart = useCallback((item: MenuItem, quantity = 1) => {
@@ -208,7 +200,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         await batch.commit();
       } catch (error) {
-        handleFirestoreError(error, OperationType.CREATE, `orders/${orderId}`);
+        if (typeof navigator !== 'undefined' && navigator.onLine) {
+          try {
+            handleFirestoreError(error, OperationType.CREATE, `orders/${orderId}`);
+          } catch (loggedErr) {
+            console.warn('Proceeding with WhatsApp receipt fallback:', loggedErr);
+          }
+        }
       }
 
       const createdOrder: RestaurantOrder = {

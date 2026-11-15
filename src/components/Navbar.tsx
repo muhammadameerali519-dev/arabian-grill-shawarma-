@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Menu, Search, ShoppingBag, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { buildGeneralWhatsAppUrl } from '../utils/whatsapp';
+import { PWAInstallButton } from './PWAInstallButton';
 import { ShawarmaLogo3D } from './ShawarmaLogo3D';
 import { WhatsAppIcon } from './WhatsAppIcon';
 
@@ -266,16 +267,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch, lightSurface = fal
                   </a>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileOpen(false);
-                    navigate('/admin');
-                  }}
-                  className="w-full min-h-[42px] px-4 rounded-[12px] text-white/60 hover:text-white text-[11px] font-medium uppercase tracking-wider text-center"
-                >
-                  Admin Portal
-                </button>
+                <PWAInstallButton compact onAction={() => setMobileOpen(false)} />
               </div>
             </motion.div>
           </div>

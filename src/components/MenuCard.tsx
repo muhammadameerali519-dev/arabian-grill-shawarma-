@@ -96,15 +96,6 @@ export const MenuCard: React.FC<MenuCardProps> = ({ item, tone = 'dark' }) => {
           >
             Rs. {item.pricePkr.toLocaleString('en-PK')}
           </div>
-          {item.isSamplePrice && (
-            <div
-              className={`text-[10px] tracking-wide truncate ${
-                isDark ? 'text-white/45' : 'text-neutral-500'
-              }`}
-            >
-              Editable in Admin
-            </div>
-          )}
         </div>
 
         {!item.available ? (

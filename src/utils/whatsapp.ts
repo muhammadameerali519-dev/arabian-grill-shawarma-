@@ -18,26 +18,39 @@ export function formatWhatsAppOrderMessage(order: RestaurantOrder): string {
     ? order.instructions.trim()
     : 'None';
 
+  const deliveryLine =
+    order.orderType === 'Pickup'
+      ? 'Pickup Fee: Rs. 0 (Self-Pickup)'
+      : order.deliveryChargePkr > 0
+        ? `Delivery Charges: Rs. ${order.deliveryChargePkr.toLocaleString('en-PK')}`
+        : 'Delivery Charges: Confirm on WhatsApp';
+
+  const totalLine =
+    order.orderType === 'Delivery' && order.deliveryChargePkr === 0
+      ? `TOTAL (Items): Rs. ${order.totalPkr.toLocaleString('en-PK')} (+ Delivery Charges to be confirmed on WhatsApp)`
+      : `TOTAL: Rs. ${order.totalPkr.toLocaleString('en-PK')}`;
+
   return [
-    'ARABIAN GRILL HOUSE — NEW ORDER',
+    'ARABIAN GRILL HOUSE — ORDER RECEIPT',
     '',
     `Order ID: ${order.orderNumber}`,
-    '',
     `Customer: ${order.customerName}`,
     `Phone: ${order.customerPhone}`,
-    `Order Type: ${order.orderType}`,
+    `Order Type: ${order.orderType} (${order.paymentMethod})`,
     '',
     'ORDER DETAILS:',
     itemLines,
     '',
     `Subtotal: Rs. ${order.subtotalPkr.toLocaleString('en-PK')}`,
-    `Delivery: Rs. ${order.deliveryChargePkr.toLocaleString('en-PK')}`,
-    `TOTAL: Rs. ${order.totalPkr.toLocaleString('en-PK')}`,
+    deliveryLine,
+    totalLine,
     '',
     `Address: ${addressDisplay}`,
     `Instructions: ${instructionsDisplay}`,
     '',
-    'Please confirm my order.',
+    order.orderType === 'Delivery'
+      ? 'Please confirm delivery charges and confirm my order.'
+      : 'Please confirm my pickup order.',
   ].join('\n');
 }
 

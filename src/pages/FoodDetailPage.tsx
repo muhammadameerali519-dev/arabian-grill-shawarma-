@@ -96,11 +96,6 @@ export const FoodDetailPage: React.FC = () => {
                 <span className="font-mono-nums text-2xl sm:text-3xl font-bold text-amber-400">
                   Rs. {item.pricePkr.toLocaleString('en-PK')}
                 </span>
-                {item.isSamplePrice && (
-                  <span className="text-xs text-white/50">
-                    Editable in Admin
-                  </span>
-                )}
               </div>
 
               <p className="mt-5 sm:mt-6 text-sm sm:text-base text-white/75 leading-relaxed">

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Clock, MapPin, Phone, RotateCcw } from 'lucide-react';
 import { RESTAURANT_INFO } from '../data/seedData';
 import { useMenu } from '../context/MenuContext';
+import { PWAInstallButton } from './PWAInstallButton';
 import { ShawarmaLogo3D } from './ShawarmaLogo3D';
 import { SquircleIcon } from './SquircleIcon';
 
@@ -69,10 +70,10 @@ export const Footer: React.FC<FooterProps> = ({ onReplayIntro }) => {
             </ul>
           </div>
 
-          {/* Ordering & Management */}
+          {/* Ordering & App */}
           <div>
             <h3 className="text-xs font-semibold tracking-[0.18em] uppercase text-white/45 mb-4">
-              Orders & Portal
+              Orders & App
             </h3>
             <ul className="space-y-2.5 text-sm text-white/75">
               <li>
@@ -83,11 +84,6 @@ export const Footer: React.FC<FooterProps> = ({ onReplayIntro }) => {
               <li>
                 <Link to="/checkout" className="hover:text-white transition-colors inline-block py-0.5">
                   WhatsApp Checkout
-                </Link>
-              </li>
-              <li>
-                <Link to="/admin" className="hover:text-white transition-colors inline-block py-0.5">
-                  Admin Dashboard
                 </Link>
               </li>
               {onReplayIntro && (
@@ -102,6 +98,9 @@ export const Footer: React.FC<FooterProps> = ({ onReplayIntro }) => {
                   </button>
                 </li>
               )}
+              <li className="pt-2">
+                <PWAInstallButton />
+              </li>
             </ul>
           </div>
 
@@ -146,7 +145,7 @@ export const Footer: React.FC<FooterProps> = ({ onReplayIntro }) => {
         <div className="pt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-white/45">
           <p>© {new Date().getFullYear()} Arabian Grill House · Shop #135 Mumtaz Market, G.T Road Gujranwala, Pakistan.</p>
           <p>
-            Official menu managed via the Arabian Grill House Admin Dashboard.
+            Official Arabian Grill House Gujranwala Menu · Freshly Prepared Daily.
           </p>
         </div>
       </div>

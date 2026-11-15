@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { doc, onSnapshot } from 'firebase/firestore';
 import {
@@ -24,14 +24,22 @@ export const ReceiptPage: React.FC = () => {
   const location = useLocation();
   const { getLocalReceipt } = useCart();
 
-  const stateOrder = (location.state as { order?: RestaurantOrder; justPlaced?: boolean } | null)
-    ?.order;
+  const navState = location.state as {
+    order?: RestaurantOrder;
+    justPlaced?: boolean;
+    autoShareWhatsApp?: boolean;
+  } | null;
+
+  const stateOrder = navState?.order;
+  const shouldAutoShare = Boolean(navState?.justPlaced || navState?.autoShareWhatsApp);
 
   const order = stateOrder || (orderId ? getLocalReceipt(orderId) : null);
   const [liveStatus, setLiveStatus] = useState<OrderStatus>(
     order?.status || 'New Order'
   );
   const [whatsappOpened, setWhatsappOpened] = useState(false);
+  const [autoTriggerPending, setAutoTriggerPending] = useState(shouldAutoShare);
+  const autoWaAnchorRef = useRef<HTMLAnchorElement | null>(null);
 
   useEffect(() => {
     if (!orderId) return;
@@ -50,7 +58,52 @@ export const ReceiptPage: React.FC = () => {
     return () => unsub();
   }, [orderId]);
 
-  if (!order) {
+  const effectiveOrder: RestaurantOrder | null = order
+    ? { ...order, status: liveStatus }
+    : null;
+  const whatsappUrl = effectiveOrder ? buildWhatsAppOrderUrl(effectiveOrder) : '';
+
+  useEffect(() => {
+    if (!effectiveOrder || !shouldAutoShare) {
+      setAutoTriggerPending(false);
+      return;
+    }
+
+    const storageKey = `agh_auto_wa_${effectiveOrder.id}`;
+    try {
+      if (sessionStorage.getItem(storageKey) === '1') {
+        setAutoTriggerPending(false);
+        return;
+      }
+      sessionStorage.setItem(storageKey, '1');
+    } catch {
+      // Proceed even if sessionStorage is restricted
+    }
+
+    const timer = window.setTimeout(() => {
+      setAutoTriggerPending(false);
+      setWhatsappOpened(true);
+
+      let inIframe = false;
+      try {
+        inIframe = window.self !== window.top;
+      } catch {
+        inIframe = true;
+      }
+
+      if (!inIframe) {
+        // On mobile phones & installed PWA, top-level navigation directly launches WhatsApp without popup blocks
+        window.location.assign(whatsappUrl);
+      } else {
+        // Inside an embedded preview iframe, trigger anchor click in new tab without window.open
+        autoWaAnchorRef.current?.click();
+      }
+    }, 650);
+
+    return () => window.clearTimeout(timer);
+  }, [effectiveOrder, shouldAutoShare, whatsappUrl]);
+
+  if (!effectiveOrder) {
     return (
       <div className="bg-[#050505] text-white min-h-screen pt-28 sm:pt-32 pb-20 px-4 sm:px-6 flex items-center justify-center">
         <div className="max-w-md text-center space-y-5">
@@ -69,12 +122,13 @@ export const ReceiptPage: React.FC = () => {
     );
   }
 
-  const effectiveOrder: RestaurantOrder = { ...order, status: liveStatus };
-  const whatsappUrl = buildWhatsAppOrderUrl(effectiveOrder);
   const displayStatus =
     liveStatus === 'New Order'
       ? 'Awaiting Restaurant Confirmation'
       : liveStatus;
+
+  const isDeliveryConfirmOnWhatsApp =
+    effectiveOrder.orderType === 'Delivery' && effectiveOrder.deliveryChargePkr === 0;
 
   const handleOpenWhatsApp = () => {
     setWhatsappOpened(true);
@@ -93,14 +147,25 @@ export const ReceiptPage: React.FC = () => {
         // Fallback to WhatsApp link
       }
     }
-    window.location.href = whatsappUrl;
+    window.location.assign(whatsappUrl);
   };
 
   return (
     <div className="bg-[#050505] text-white min-h-screen pt-24 sm:pt-32 pb-24 px-3.5 sm:px-6 print:bg-white print:text-black print:pt-4">
       <div className="max-w-3xl mx-auto">
+        {/* Hidden anchor for auto-opening WhatsApp cleanly inside embedded previews */}
+        <a
+          ref={autoWaAnchorRef}
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-hidden="true"
+          tabIndex={-1}
+          className="hidden"
+        />
+
         {/* WhatsApp Dispatch Banner */}
-        <div className="rounded-[22px] sm:rounded-[26px] glass-dark p-5 sm:p-7 mb-6 sm:mb-7 no-print">
+        <div className="rounded-[22px] sm:rounded-[26px] glass-dark border border-amber-400/25 p-5 sm:p-7 mb-6 sm:mb-7 no-print">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
             <div className="flex items-start gap-3.5 sm:gap-4">
               <SquircleIcon size="md" tone="solid-light">
@@ -111,16 +176,20 @@ export const ReceiptPage: React.FC = () => {
                 )}
               </SquircleIcon>
               <div className="min-w-0">
-                <p className="text-[11px] sm:text-xs uppercase tracking-widest text-white/55">
-                  Order Status: {displayStatus}
+                <p className="text-[11px] sm:text-xs uppercase tracking-widest text-amber-300 font-semibold">
+                  {autoTriggerPending
+                    ? 'Opening WhatsApp Automatically...'
+                    : `Order Status: ${displayStatus}`}
                 </p>
                 <h1 className="font-editorial text-xl sm:text-2xl font-semibold mt-1">
-                  Send Order {effectiveOrder.orderNumber} via WhatsApp
+                  Receipt {effectiveOrder.orderNumber} · WhatsApp Share
                 </h1>
-                <p className="text-xs text-white/65 mt-1.5 leading-relaxed max-w-lg">
-                  {whatsappOpened
-                    ? 'WhatsApp was opened with your formatted order details. Your order remains Awaiting Restaurant Confirmation until Arabian Grill House replies and accepts it.'
-                    : 'Tap below to send your pre-filled order directly to Arabian Grill House (+92 331 1073628).'}
+                <p className="text-xs text-white/70 mt-1.5 leading-relaxed max-w-lg">
+                  {autoTriggerPending
+                    ? 'Your receipt is ready — redirecting you to WhatsApp automatically with your full order & items...'
+                    : whatsappOpened
+                      ? 'WhatsApp was triggered with your complete formatted receipt. If WhatsApp did not open automatically on your device, tap the button on the right to share & confirm delivery charges.'
+                      : 'Tap below to send your pre-filled receipt to Arabian Grill House (+92 331 1073628) and confirm delivery charges.'}
                 </p>
               </div>
             </div>
@@ -130,7 +199,7 @@ export const ReceiptPage: React.FC = () => {
               target="_blank"
               rel="noopener noreferrer"
               onClick={handleOpenWhatsApp}
-              className="w-full sm:w-auto min-h-[48px] inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-[16px] bg-white text-[#050505] text-xs font-semibold uppercase tracking-wider hover:bg-neutral-200 transition-colors whitespace-nowrap shrink-0"
+              className="w-full sm:w-auto min-h-[48px] inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-[16px] bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-xs font-bold uppercase tracking-wider hover:from-emerald-400 hover:to-emerald-500 shadow-[0_10px_24px_rgba(16,185,129,0.28)] transition-all whitespace-nowrap shrink-0"
             >
               <WhatsAppIcon className="w-4 h-4" />
               <span>Send on WhatsApp</span>
@@ -246,15 +315,34 @@ export const ReceiptPage: React.FC = () => {
                 Rs. {effectiveOrder.subtotalPkr.toLocaleString('en-PK')}
               </span>
             </div>
-            <div className="flex justify-between text-neutral-600">
-              <span>Delivery Charges</span>
-              <span className="font-mono-nums text-neutral-950">
-                Rs. {effectiveOrder.deliveryChargePkr.toLocaleString('en-PK')}
+            <div className="flex justify-between text-neutral-600 gap-2">
+              <span>
+                {effectiveOrder.orderType === 'Pickup' ? 'Pickup Fee' : 'Delivery Charges'}
+              </span>
+              <span className="font-semibold text-right">
+                {effectiveOrder.orderType === 'Pickup' ? (
+                  <span className="font-mono-nums text-neutral-950">Rs. 0 (Self-Pickup)</span>
+                ) : isDeliveryConfirmOnWhatsApp ? (
+                  <span className="text-amber-700">Confirm on WhatsApp</span>
+                ) : (
+                  <span className="font-mono-nums text-neutral-950">
+                    Rs. {effectiveOrder.deliveryChargePkr.toLocaleString('en-PK')}
+                  </span>
+                )}
               </span>
             </div>
-            <div className="pt-3 border-t border-black/12 flex justify-between items-baseline">
-              <span className="text-base font-bold">Grand Total</span>
-              <span className="font-mono-nums text-xl sm:text-2xl font-bold">
+            <div className="pt-3 border-t border-black/12 flex justify-between items-baseline gap-2">
+              <div>
+                <span className="text-base font-bold block">
+                  {isDeliveryConfirmOnWhatsApp ? 'Items Total' : 'Grand Total'}
+                </span>
+                {isDeliveryConfirmOnWhatsApp && (
+                  <span className="text-[11px] text-neutral-500">
+                    Delivery charges confirmed directly on WhatsApp
+                  </span>
+                )}
+              </div>
+              <span className="font-mono-nums text-xl sm:text-2xl font-bold shrink-0">
                 Rs. {effectiveOrder.totalPkr.toLocaleString('en-PK')}
               </span>
             </div>

@@ -68,7 +68,7 @@ export const ShawarmaLogo3D: React.FC<ShawarmaLogo3DProps> = ({
             src={BRAND_ASSETS.shawarma3dLogo}
             alt="Arabian Grill House 3D Shawarma Emblem"
             referrerPolicy="no-referrer"
-            loading={priority ? 'eager' : 'lazy'}
+            loading="eager"
             decoding="async"
             className={`${SIZE_CLASSES[size]} object-contain pointer-events-none ${
               isCompact

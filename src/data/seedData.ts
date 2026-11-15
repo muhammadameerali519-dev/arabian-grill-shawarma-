@@ -32,8 +32,8 @@ export const DEFAULT_SETTINGS: RestaurantSettings = {
   openTime: '4:00 PM',
   closeTime: '2:00 AM',
   hoursNote: 'Opens at 4 PM and closes at 2 AM. Opening hours may change.',
-  deliveryChargePkr: 150,
-  freeDeliveryThresholdPkr: 2500,
+  deliveryChargePkr: 0,
+  freeDeliveryThresholdPkr: 0,
   isAcceptingOrders: true,
 };
 

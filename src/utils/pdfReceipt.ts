@@ -145,8 +145,14 @@ export function downloadOrderReceiptPdf(order: RestaurantOrder): void {
   });
 
   y += 6;
+  const deliveryText =
+    order.orderType === 'Pickup'
+      ? 'Rs. 0 (Self-Pickup)'
+      : order.deliveryChargePkr > 0
+        ? `Rs. ${order.deliveryChargePkr.toLocaleString('en-PK')}`
+        : 'Confirm on WhatsApp';
   doc.text('Delivery Charges', 125, y);
-  doc.text(`Rs. ${order.deliveryChargePkr.toLocaleString('en-PK')}`, pageWidth - 20, y, {
+  doc.text(deliveryText, pageWidth - 20, y, {
     align: 'right',
   });
 
@@ -155,7 +161,7 @@ export function downloadOrderReceiptPdf(order: RestaurantOrder): void {
   y += 7;
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
-  doc.text('GRAND TOTAL', 125, y);
+  doc.text(order.orderType === 'Delivery' && order.deliveryChargePkr === 0 ? 'ITEMS TOTAL' : 'GRAND TOTAL', 125, y);
   doc.text(`Rs. ${order.totalPkr.toLocaleString('en-PK')}`, pageWidth - 20, y, {
     align: 'right',
   });
@@ -165,7 +171,7 @@ export function downloadOrderReceiptPdf(order: RestaurantOrder): void {
   doc.setFontSize(9);
   doc.setTextColor(110, 110, 110);
   doc.text(
-    'Note: Orders sent via WhatsApp await direct restaurant confirmation.',
+    'Note: Delivery charges & order confirmation are finalized directly on WhatsApp (+92 331 1073628).',
     pageWidth / 2,
     y,
     { align: 'center' }

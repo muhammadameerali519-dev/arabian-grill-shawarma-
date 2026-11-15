@@ -5,11 +5,11 @@ import { CinematicIntro } from './components/CinematicIntro';
 import { FloatingWhatsApp } from './components/FloatingWhatsApp';
 import { Footer } from './components/Footer';
 import { Navbar } from './components/Navbar';
+import { OfflineIndicator } from './components/PWAInstallButton';
 import { SearchModal } from './components/SearchModal';
-import { AuthProvider } from './context/AuthContext';
+import { SignaturePromoModal } from './components/SignaturePromoModal';
 import { CartProvider } from './context/CartContext';
 import { MenuProvider } from './context/MenuContext';
-import { AdminPage } from './pages/AdminPage';
 import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { ContactPage } from './pages/ContactPage';
@@ -21,6 +21,7 @@ import { OurStoryPage } from './pages/OurStoryPage';
 import { ReceiptPage } from './pages/ReceiptPage';
 
 const INTRO_STORAGE_KEY = 'agh_intro_seen_v1';
+const PROMO_STORAGE_KEY = 'agh_super_shawarma_promo_v1';
 
 class AppErrorBoundary extends Component<
   { children: ReactNode },
@@ -82,6 +83,7 @@ const AppShell: React.FC = () => {
       return true;
     }
   });
+  const [promoOpen, setPromoOpen] = useState<boolean>(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [homeLightNav, setHomeLightNav] = useState(false);
   const [mapsQuotaExceeded, setMapsQuotaExceeded] = useState(false);
@@ -90,6 +92,33 @@ const AppShell: React.FC = () => {
     const onQuota = () => setMapsQuotaExceeded(true);
     window.addEventListener('gmp-quota-exceeded', onQuota);
     return () => window.removeEventListener('gmp-quota-exceeded', onQuota);
+  }, []);
+
+  // Show Signature Promotion Popup once per browsing session when not inside intro
+  useEffect(() => {
+    if (introVisible) return;
+    if (location.pathname === '/menu/item-arabian-special-super-shawarma') return;
+
+    try {
+      if (sessionStorage.getItem(PROMO_STORAGE_KEY)) return;
+    } catch {
+      // Ignore storage errors
+    }
+
+    const timer = window.setTimeout(() => {
+      setPromoOpen(true);
+    }, 350);
+
+    return () => window.clearTimeout(timer);
+  }, [introVisible, location.pathname]);
+
+  const handleClosePromo = useCallback(() => {
+    try {
+      sessionStorage.setItem(PROMO_STORAGE_KEY, '1');
+    } catch {
+      // Ignore storage errors
+    }
+    setPromoOpen(false);
   }, []);
 
   const handleEnterIntro = useCallback(() => {
@@ -133,6 +162,8 @@ const AppShell: React.FC = () => {
 
       <CinematicIntro visible={introVisible} onEnter={handleEnterIntro} />
 
+      <SignaturePromoModal open={promoOpen} onClose={handleClosePromo} />
+
       <Navbar
         onOpenSearch={() => setSearchOpen(true)}
         lightSurface={isLightRoute}
@@ -152,13 +183,13 @@ const AppShell: React.FC = () => {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/receipt/:orderId" element={<ReceiptPage />} />
           <Route path="/contact" element={<ContactPage />} />
-          <Route path="/admin" element={<AdminPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
 
       <Footer onReplayIntro={handleReplayIntro} />
       <FloatingWhatsApp />
+      <OfflineIndicator />
       <CartDrawer />
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
@@ -168,15 +199,13 @@ const AppShell: React.FC = () => {
 export default function App() {
   return (
     <AppErrorBoundary>
-      <AuthProvider>
-        <MenuProvider>
-          <CartProvider>
-            <BrowserRouter>
-              <AppShell />
-            </BrowserRouter>
-          </CartProvider>
-        </MenuProvider>
-      </AuthProvider>
+      <MenuProvider>
+        <CartProvider>
+          <BrowserRouter>
+            <AppShell />
+          </BrowserRouter>
+        </CartProvider>
+      </MenuProvider>
     </AppErrorBoundary>
   );
 }

@@ -24,8 +24,15 @@ export const ContactPage: React.FC = () => {
     e.preventDefault();
     if (!name.trim() || !message.trim()) return;
     const text = `Assalam-o-Alaikum Arabian Grill House,\nName: ${name.trim()}\nPhone: ${phone.trim() || 'N/A'}\nInquiry: ${message.trim()}`;
+    const url = buildGeneralWhatsAppUrl(text);
     setSent(true);
-    window.open(buildGeneralWhatsAppUrl(text), '_blank', 'noopener,noreferrer');
+    const link = document.createElement('a');
+    link.href = url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   };
 
   return (

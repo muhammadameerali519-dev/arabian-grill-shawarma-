@@ -6,6 +6,7 @@ import dishGrilledSpecialties from '../assets/images/dish_grilled_specialties_17
 import restaurantInterior from '../assets/images/restaurant_interior_atmosphere_1794598742794.jpg';
 import drinksSidesSpread from '../assets/images/drinks_sides_spread_1794598743202.jpg';
 import shawarma3dLogo from '../assets/images/shawarma_3d_logo.png';
+import whatsappLogo from '../assets/images/whatsapp_logo.png';
 import menuGrilledBurger from '../assets/images/menu_grilled_burger_1794601684442.jpg';
 import menuZingerBurger from '../assets/images/menu_zinger_burger_1794601685020.jpg';
 import menuSnackPack from '../assets/images/menu_snack_pack_1794601685180.jpg';
@@ -24,6 +25,7 @@ export const BRAND_ASSETS = {
   restaurantInterior,
   drinksSidesSpread,
   shawarma3dLogo,
+  whatsappLogo,
   menuGrilledBurger,
   menuZingerBurger,
   menuSnackPack,

@@ -78,7 +78,9 @@ export const CheckoutPage: React.FC = () => {
         deliveryAddress,
         instructions,
       });
-      navigate(`/receipt/${order.id}`, { state: { order, justPlaced: true } });
+      navigate(`/receipt/${order.id}`, {
+        state: { order, justPlaced: true, autoShareWhatsApp: true },
+      });
     } catch (err) {
       setErrorMsg(
         err instanceof Error
@@ -277,25 +279,25 @@ export const CheckoutPage: React.FC = () => {
               />
             </div>
 
-            <div className="p-4 rounded-[18px] bg-white/[0.04] border border-white/10 text-xs text-white/70 leading-relaxed flex items-start gap-3">
+            <div className="p-4 rounded-[18px] bg-amber-500/10 border border-amber-400/25 text-xs text-white/80 leading-relaxed flex items-start gap-3">
               <WhatsAppIcon className="w-4 h-4 shrink-0 mt-0.5 text-white" />
               <span>
-                Confirming generates your official digital receipt and prepares your pre-filled WhatsApp order to{' '}
-                <strong className="text-white font-mono-nums">+92 331 1073628</strong>. Orders remain{' '}
-                <strong className="text-white">Awaiting Restaurant Confirmation</strong> until confirmed directly by Arabian Grill House.
+                Confirming generates your official digital receipt and{' '}
+                <strong className="text-white">automatically opens WhatsApp</strong> to share your receipt with{' '}
+                <strong className="text-amber-300 font-mono-nums">+92 331 1073628</strong> and confirm delivery charges.
               </span>
             </div>
 
             <button
               type="submit"
               disabled={submitting}
-              className="w-full min-h-[52px] py-3.5 px-5 rounded-[18px] bg-white text-[#050505] hover:bg-neutral-200 disabled:opacity-50 text-xs font-semibold tracking-[0.1em] sm:tracking-[0.14em] uppercase inline-flex items-center justify-center gap-2.5 transition-colors text-center"
+              className="w-full min-h-[52px] py-3.5 px-5 rounded-[18px] bg-white text-[#050505] hover:bg-neutral-200 disabled:opacity-50 text-xs font-semibold tracking-[0.08em] sm:tracking-[0.12em] uppercase inline-flex items-center justify-center gap-2.5 transition-colors text-center"
             >
               <CheckCircle2 className="w-4 h-4 shrink-0" />
               <span>
                 {submitting
                   ? 'Generating Receipt...'
-                  : `Confirm Order · Rs. ${grandTotal.toLocaleString('en-PK')}`}
+                  : `Confirm & Share on WhatsApp · Rs. ${grandTotal.toLocaleString('en-PK')}`}
               </span>
             </button>
           </form>
@@ -330,12 +332,16 @@ export const CheckoutPage: React.FC = () => {
                   Rs. {subtotalPkr.toLocaleString('en-PK')}
                 </span>
               </div>
-              <div className="flex justify-between text-white/70">
+              <div className="flex justify-between items-center text-white/70 gap-2">
                 <span>
                   {orderType === 'Pickup' ? 'Pickup Fee' : 'Delivery Charges'}
                 </span>
-                <span className="font-mono-nums text-white">
-                  Rs. {deliveryFee.toLocaleString('en-PK')}
+                <span className="font-semibold text-right">
+                  {orderType === 'Pickup' ? (
+                    <span className="font-mono-nums text-white">Rs. 0 (Self-Pickup)</span>
+                  ) : (
+                    <span className="text-amber-300">Confirm on WhatsApp</span>
+                  )}
                 </span>
               </div>
               <div className="flex justify-between text-white/70">
@@ -344,9 +350,18 @@ export const CheckoutPage: React.FC = () => {
                   {orderType === 'Pickup' ? 'Pay at Pickup' : 'Cash on Delivery'}
                 </span>
               </div>
-              <div className="pt-3 border-t border-white/12 flex justify-between items-baseline">
-                <span className="text-base font-semibold">Grand Total</span>
-                <span className="font-mono-nums text-2xl font-semibold text-white">
+              <div className="pt-3 border-t border-white/12 flex justify-between items-baseline gap-2">
+                <div>
+                  <span className="text-base font-semibold block">
+                    {orderType === 'Pickup' ? 'Grand Total' : 'Order Total'}
+                  </span>
+                  {orderType === 'Delivery' && (
+                    <span className="text-[11px] text-white/50">
+                      + Delivery charges confirmed on WhatsApp
+                    </span>
+                  )}
+                </div>
+                <span className="font-mono-nums text-2xl font-semibold text-white shrink-0">
                   Rs. {grandTotal.toLocaleString('en-PK')}
                 </span>
               </div>

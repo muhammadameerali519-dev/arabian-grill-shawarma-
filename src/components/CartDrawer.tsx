@@ -3,13 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { ArrowRight, Minus, Plus, ShoppingBag, Trash2, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { useMenu } from '../context/MenuContext';
 import { SmartImage } from './SmartImage';
 import { SquircleIcon } from './SquircleIcon';
 
 export const CartDrawer: React.FC = () => {
   const navigate = useNavigate();
-  const { settings } = useMenu();
   const {
     items,
     isDrawerOpen,
@@ -19,11 +17,6 @@ export const CartDrawer: React.FC = () => {
     updateQuantity,
     removeItem,
   } = useCart();
-
-  const remainingForFreeDelivery = Math.max(
-    0,
-    settings.freeDeliveryThresholdPkr - subtotalPkr
-  );
 
   return (
     <AnimatePresence>
@@ -91,23 +84,9 @@ export const CartDrawer: React.FC = () => {
                 </div>
               ) : (
                 <>
-                  {settings.freeDeliveryThresholdPkr > 0 && (
-                    <div className="p-3.5 rounded-[16px] bg-white/[0.04] border border-white/10 text-xs text-white/75">
-                      {remainingForFreeDelivery > 0 ? (
-                        <span>
-                          Add{' '}
-                          <strong className="text-white font-mono-nums">
-                            Rs. {remainingForFreeDelivery.toLocaleString('en-PK')}
-                          </strong>{' '}
-                          more for complimentary Gujranwala delivery.
-                        </span>
-                      ) : (
-                        <span className="text-white">
-                          Complimentary Gujranwala delivery unlocked on this order.
-                        </span>
-                      )}
-                    </div>
-                  )}
+                  <div className="p-3.5 rounded-[16px] bg-amber-500/10 border border-amber-400/25 text-xs text-amber-100/90">
+                    Delivery charges are confirmed directly on WhatsApp based on your Gujranwala address. Self-pickup is free.
+                  </div>
 
                   {items.map(({ item, quantity }) => (
                     <div
@@ -182,9 +161,9 @@ export const CartDrawer: React.FC = () => {
                       Rs. {subtotalPkr.toLocaleString('en-PK')}
                     </span>
                   </div>
-                  <div className="flex justify-between text-xs text-white/50">
-                    <span>Delivery Fee</span>
-                    <span>Calculated at checkout</span>
+                  <div className="flex justify-between items-center text-xs text-white/65">
+                    <span>Delivery Charges</span>
+                    <span className="text-amber-300 font-semibold">Confirm on WhatsApp</span>
                   </div>
                 </div>
 
